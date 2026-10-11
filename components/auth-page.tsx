@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { FormEvent, useState } from 'react'
 import { ArrowRight, ShieldCheck, Sparkles } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -12,6 +15,70 @@ export function AuthPage({
   mode: AuthMode
 }) {
   const isLogin = mode === 'login'
+  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+
+    if (!isLogin && password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5201'}/api/auth/${isLogin ? 'login' : 'register'}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            isLogin
+              ? { email, password }
+              : { email, username, password, displayName },
+          ),
+        },
+      )
+
+      const body = (await response.json()) as {
+        accessToken?: string
+        refreshToken?: string
+        email?: string
+        code?: string
+        message?: string
+      }
+
+      if (!response.ok) {
+        throw new Error(isLogin ? getLoginErrorMessage(body.code, body.message) : (body.message ?? 'Không thể xác thực tài khoản.'))
+      }
+
+      if (!isLogin) {
+        window.location.href = `/verify-email?email=${encodeURIComponent(body.email ?? email)}`
+        return
+      }
+
+      if (!body.accessToken) {
+        throw new Error('Không thể xác thực tài khoản.')
+      }
+
+      localStorage.setItem('social_network_access_token', body.accessToken)
+      if ('refreshToken' in body && typeof body.refreshToken === 'string') {
+        localStorage.setItem('social_network_refresh_token', body.refreshToken)
+      }
+      window.location.href = '/'
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Đã xảy ra lỗi.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f3f3f1] px-4 py-8 sm:px-6 lg:px-8">
@@ -74,15 +141,33 @@ export function AuthPage({
               </div>
             </div>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium text-zinc-700">
-                    Full name
+                  <label htmlFor="username" className="text-sm font-medium text-zinc-700">
+                    Username
                   </label>
                   <Input
-                    id="name"
+                    id="username"
                     type="text"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="jane_doe"
+                    className="h-12 rounded-xl border-zinc-200 bg-zinc-50 px-4 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-300 focus-visible:ring-zinc-200"
+                  />
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="display-name" className="text-sm font-medium text-zinc-700">
+                    Display name
+                  </label>
+                  <Input
+                    id="display-name"
+                    type="text"
+                    value={displayName}
+                    onChange={(event) => setDisplayName(event.target.value)}
                     placeholder="Jane Doe"
                     className="h-12 rounded-xl border-zinc-200 bg-zinc-50 px-4 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-300 focus-visible:ring-zinc-200"
                   />
@@ -96,6 +181,8 @@ export function AuthPage({
                 <Input
                   id="email"
                   type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@example.com"
                   className="h-12 rounded-xl border-zinc-200 bg-zinc-50 px-4 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-300 focus-visible:ring-zinc-200"
                 />
@@ -115,6 +202,8 @@ export function AuthPage({
                 <Input
                   id="password"
                   type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   placeholder="••••••••"
                   className="h-12 rounded-xl border-zinc-200 bg-zinc-50 px-4 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-300 focus-visible:ring-zinc-200"
                 />
@@ -128,6 +217,8 @@ export function AuthPage({
                   <Input
                     id="confirm-password"
                     type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
                     placeholder="Repeat your password"
                     className="h-12 rounded-xl border-zinc-200 bg-zinc-50 px-4 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-300 focus-visible:ring-zinc-200"
                   />
@@ -136,11 +227,13 @@ export function AuthPage({
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="h-12 w-full rounded-xl bg-zinc-900 text-base font-medium text-white shadow-[0_8px_22px_rgba(24,24,27,0.18)] hover:bg-zinc-800"
               >
-                {isLogin ? 'Sign in' : 'Create account'}
+                {isSubmitting ? 'Processing...' : isLogin ? 'Sign in' : 'Create account'}
                 <ArrowRight className="ml-2 size-4" />
               </Button>
+              {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
             </form>
 
             <div className="my-6 flex items-center gap-4">
@@ -171,4 +264,19 @@ export function AuthPage({
       </div>
     </div>
   )
+}
+
+function getLoginErrorMessage(code?: string, fallback?: string) {
+  switch (code) {
+    case 'AUTH_EMAIL_NOT_FOUND':
+      return 'Email này chưa được đăng ký.'
+    case 'AUTH_PASSWORD_INVALID':
+      return 'Mật khẩu không đúng.'
+    case 'AUTH_EMAIL_NOT_VERIFIED':
+      return 'Email chưa được xác nhận. Vui lòng nhập mã xác nhận đã được gửi đến email của bạn.'
+    case 'AUTH_ACCOUNT_INACTIVE':
+      return 'Tài khoản đang bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.'
+    default:
+      return fallback ?? 'Email hoặc mật khẩu không hợp lệ.'
+  }
 }
