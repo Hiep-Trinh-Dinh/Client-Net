@@ -70,6 +70,26 @@ Client/
 - [x] Tích hợp các tiện ích xử lý class với `clsx`, `cn`,
       `tailwind-merge` và `class-variance-authority`.
 - [x] Có README hướng dẫn cài dependency, chạy development và build.
+- [x] Cài đặt Zustand và react-virtuoso phục vụ State Management và Virtualized Lists.
+- [x] Thực hiện Bước 0 Refactoring: Chẻ nhỏ monolith `platform-shell.tsx` (từ 665 dòng xuống <60 dòng), chia tách module rõ ràng vào `components/layout/`, `components/post/`, `components/profile/`, `components/community/`, `components/chat/`.
+- [x] Tạo Zustand Store `stores/app-store.ts` quản lý state toàn cục (view, profile, chat, mobileNav).
+- [x] Thêm component `Skeleton` chuẩn shadcn và tích hợp loading state mượt mà cho feed, community, profile.
+- [x] Tích hợp trường Giới tính (`gender`) vào form và kiểu dữ liệu `Profile` (khớp 100% ERD Module 1).
+- [x] Áp dụng Optimistic UI cho tương tác thả Reaction bài viết và bình luận (phản hồi tức thì, tự rollback khi lỗi).
+- [x] Hoàn thiện toàn bộ Module 2 (Community / Room / Permission):
+      - Cung cấp giao diện không gian cộng đồng 3 cột chuẩn hiện đại (Channels, Chat/Voice stage, Member sidebar).
+      - Quản lý kênh phân cấp `ROOMS` gồm Kênh văn bản (Text Channels) và Kênh đàm thoại (Voice Channels).
+      - Cho phép tạo kênh mới với thiết lập riêng tư (`is_private`), modal trực quan.
+      - Xây dựng ma trận phân quyền `RoleMatrixModal` quản lý vai trò (`COMMUNITY_ROLES`), độ ưu tiên và gán ma trận quyền chi tiết (`PERMISSIONS` & `ROLE_PERMISSIONS`).
+      - Quản lý danh sách thành viên `MemberSidebar` (`COMMUNITY_MEMBERS`), gán vai trò trực tiếp (`COMMUNITY_MEMBER_ROLES`) và trục xuất (Kick) thành viên.
+      - Tích hợp không gian phòng thoại Voice Stage (`VOICE_SESSIONS`) với trạng thái kết nối âm thanh và nút điều khiển micro.
+- [x] Hoàn thiện toàn bộ Module 4 (Communication / Chat / Voice / Call):
+      - Xây dựng hệ thống hội thoại trực tiếp `CONVERSATIONS` (1-1 và Group Chat) với danh sách tin nhắn chưa đọc, tìm kiếm cuộc trò chuyện.
+      - Giao diện nhắn tin `MESSAGES` chuyên sâu: bong bóng tin nhắn, chỉ báo thời gian, tích xanh trạng thái tin đã đọc (`MESSAGE_READS`).
+      - Đính kèm tệp tin và hình ảnh vào tin nhắn `MESSAGE_ATTACHMENTS`.
+      - Tích hợp reaction cảm xúc cho từng tin nhắn `MESSAGE_REACTIONS`.
+      - Chế độ mở rộng toàn màn hình (Expand/Collapse modal) và tự động cuộn đến tin nhắn mới nhất.
+      - Modal thực hiện cuộc gọi Audio Call và Video Call `CALLS` & `CALL_PARTICIPANTS` (grid camera/avatar, dock bật/tắt mic, camera và kết thúc cuộc gọi).
 
 ## Đang chờ thực hiện
 
