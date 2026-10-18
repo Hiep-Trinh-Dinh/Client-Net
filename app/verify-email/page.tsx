@@ -62,6 +62,7 @@ export default function VerifyEmailPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              className="h-11 border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-900 focus-visible:ring-zinc-900/10"
             />
           </div>
           <div className="space-y-2">
@@ -75,6 +76,7 @@ export default function VerifyEmailPage() {
               value={code}
               onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
               placeholder="123456"
+              className="h-11 border-zinc-200 bg-white text-zinc-900 font-mono tracking-widest placeholder:text-zinc-400 focus-visible:border-zinc-900 focus-visible:ring-zinc-900/10"
             />
           </div>
           <Button type="submit" disabled={isSubmitting} className="h-12 w-full bg-zinc-900 text-white hover:bg-zinc-800">
